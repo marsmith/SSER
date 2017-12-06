@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="author" content="Martyn Smith - USGS NY WSC">
+	<link rel="copyright" href="license.txt">
+    <title>South Shore Estuary Reserve Coordinated Water Resources Monitoring Strategy mapper</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="./scripts/vendor.bundle.min.js"></script>
+    <script src="./scripts/bundle.min.js"></script>  
+  </head>
+  <body>
+    <div id="top-menu">
+        <div class="title">
+            <a class='top-menu-brand' href="http://www.usgs.gov"><img src="images/usgs-logo.png"></a>
+            <span class="app-name">South Shore Estuary Reserve Coordinated Water Resources Monitoring Strategy mapper</span> <span class="app-name-mobile">SSER mapper</span> 
+        </div>
+        <div id="mobile-main-menu">
+            <span class="glyphicon glyphicon-menu-hamburger" ></span>
+        </div>
+
+        <button id="aboutButton" class="btn btn-default top-menu-btn pull-right">
+            <i class="glyphicon glyphicon-info-sign"></i><span class="hidden-xs">&nbsp;&nbsp;About</span>
+        </button>
+    </div>
+
+    <div id="main-menu">
+        <div class="main-menu-container scrollable">
+            <div class="menu-content"> 
+                <div class="scrollable-content">
+
+                    <div class="panel-group" id="accordion">
+
+                        <div class="panel panel-default sidebar-panel">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#filtersPanel">
+                                        Filters
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="filtersPanel" class="panel-collapse collapse in">
+                                <div class="panel-body collapse in">     
+                                    <button type="button" class="btn btn-success btn-block" id="resetFilters" >Reset Filters</button>
+
+                                    <h4 id="siteCount" class="text-right"></h4>
+       
+                                    <div id="geoFilterSelect" class="filterSelect">
+                                        </br><label>Site / Location Filters</label>
+                                    </div>
+                                   
+									
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="panel panel-default sidebar-panel">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#exportPanel">
+                                        Export
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="exportPanel" class="panel-collapse collapse">
+                                <div class="panel-body">     
+                                    <div id="export" style="display:block;">
+   
+                                        <div class="form-group">
+                                            <button type="button" class="btn btn-success btn-block" id="exportGeoJSON" >Export GeoJSON&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
+                                        </div>
+                                       <div class="form-group">
+                                            <button type="button" class="btn btn-success btn-block" id="exportKML" >Export KML&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="button" class="btn btn-success btn-block" id="exportCSV" >Export CSV&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default sidebar-panel">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#mapLayersPanel">
+                                        Map Layers
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="mapLayersPanel" class="panel-collapse collapse">
+                                <div class="panel-body baseLayerPanel">
+                                    <div id="baseLayerToggles"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default sidebar-panel">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#basemapsPanel">
+                                        Basemaps
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="basemapsPanel" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <button id="btnStreets" class="btn btn-default slick-btn basemapBtn equalize"><img class="basemapThumb" alt="" src="images/streets.jpg"><br class="basemapThumb">Streets</button>
+                                    <button id="btnImagery" class="btn btn-default slick-btn basemapBtn equalize" ><img class="basemapThumb" alt="" src="images/satellite.jpg"><br class="basemapThumb">Imagery</button>
+                                    <button id="btnTopographic" class="btn btn-default slick-btn basemapBtn equalize"><img class="basemapThumb" alt="" src="images/topo.jpg"><br class="basemapThumb">Topographic</button>
+                                    <button id="btnTerrain" class="btn btn-default slick-btn basemapBtn equalize"><img class="basemapThumb" alt="" src="images/terrain.jpg"><br class="basemapThumb">Terrain</button>
+                                    <button id="btnDarkGray" class="btn btn-default slick-btn basemapBtn equalize slick-btn-selection" ><img class="basemapThumb" alt="" src="images/dark-gray.jpg"><br class="basemapThumb">Dark Gray</button>
+                                    <button id="btnGray" class="btn btn-default slick-btn basemapBtn equalize" ><img class="basemapThumb" alt="" src="images/gray.jpg"><br class="basemapThumb">Gray</button>
+                                    <button id="btnNationalGeographic" class="btn btn-default slick-btn basemapBtn equalize"><img class="basemapThumb" alt="" src="images/natgeo.jpg"><br class="basemapThumb">National Geographic</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="info" class="identification">Developed by <a href="https://ny.water.usgs.gov/" target="_blank">USGS NY WSC</a></div>
+                    <div class="menu-footer">
+                        <a href="https://usgs.gov/" target="_blank">USGS Home</a>
+                        <a href="https://answers.usgs.gov/" target="_blank">Contact USGS</a>
+                        <a href="https://search.usgs.gov/" target="_blank">Search USGS</a>
+                        <a href="https://www2.usgs.gov/laws/accessibility.html" target="_blank">Accessibility</a>
+                        <a href="https://www2.usgs.gov/foia/" target="_blank">FOIA</a>
+                        <a href="https://www2.usgs.gov/laws/privacy.html" target="_blank">Privacy</a>
+                        <a href="https://www2.usgs.gov/laws/policies_notices.html" target="_blank">Policies & Notices</a>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <div id="aboutModal" class="modal fade"  tabindex="-1" role="dialog" >
+        <div class="modal-dialog  modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="close" type="button" data-dismiss="modal" aria-hidden="true" style="color:gray;">&times;</button>
+                    <h4 class="modal-title">South Shore Estuary Reserve Coordinated Water Resources Monitoring Strategy mapper</h4>
+                </div>
+                <div id="aboutModalBody" class="modal-body">
+                    <ul class="nav nav-tabs" id="aboutModalTabs">
+                        <li role="presentation" class="active"><a id="aboutTab" href="#aboutTabPane" data-toggle="tab"><i class="fa fa-question-circle"></i>&nbsp;About the application</a></li>
+                        <li role="presentation"><a id="disclaimerTab" href="#disclaimerTabPane" data-toggle="tab"><i class="fa fa-exclamation-circle"></i>&nbsp;Disclaimer</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="aboutTabPane"></br>
+                            <p>Developed by Martyn Smith of the NY WSC.  Licensed under <a href="./license.txt" target="_blank">Apache 2.0</a></p>
+                            <p>Portions of this application were developed in conjuction with <a href="http://wim.usgs.gov" target="_blank">Web Informatics and Mapping (WiM)</a></p>
+                            <span id="appVersion"></span>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="disclaimerTabPane"></br>
+                            <h4>USGS Software User Rights Notice</h4>
+                            <p>Software and related material (data and (or) documentation), contained in or furnished in connection with a software distribution, are made available by the U.S. Geological Survey (USGS) to be used in the public interest and in the advancement of science, subject to the following restrictions and understandings.</p>
+                            <p>Because the software and related material are free and provided "as is," the authors, the USGS, and the United States Government have made no warranty, express or implied, as to accuracy or completeness and are not obligated to provide the user with any support, consulting, training or assistance of any kind with regard to the use, operation, and performance of this software nor to provide the user with any updates, revisions, new versions or "bug fixes".</p>          
+                            <p>The user assumes all risk for any damages whatsoever resulting from loss of use, data, or profits arising in connection with the access, use, quality, or performance of this software.</p>				
+                                
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="modal-footer">
+                </div>-->
+            </div><!-- /.modal-content -->
+        </div> <!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div id="mapDiv">
+        <div id="NWSlegend"></div>
+        <div id="radarTimeStamp" style="font-size:x-small;"></div>
+    </div>
+  </body>
+</html>
