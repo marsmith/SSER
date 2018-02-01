@@ -393,7 +393,7 @@ pre {
   display: none;
 }
 #main-menu .slick-btn:hover {
-  border-color: #333;
+  border-color: rgb(7, 172, 103);
   background-color: rgba(236, 238, 243, 0.5);
 }
 #main-menu .slick-btn:focus {

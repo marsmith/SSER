@@ -3,8 +3,9 @@
   <head>
     <meta name="author" content="Martyn Smith - USGS NY WSC">
 	<link rel="copyright" href="license.txt">
-    <title>SSER mapper</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>South Shore Estuary Reserve Coordinated Water Resources Monitoring Strategy mapper</title>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" >    
     <script src="./scripts/vendor.bundle.min.js"></script>
     <script src="./scripts/bundle.min.js"></script>  
   </head>
@@ -12,7 +13,7 @@
     <div id="top-menu">
         <div class="title">
             <a class='top-menu-brand' href="http://www.usgs.gov"><img src="images/usgs-logo.png"></a>
-            <span class="app-name">SSER mapper</span> <span class="app-name-mobile">SSER mapper</span> 
+            <span class="app-name">South Shore Estuary Reserve Coordinated Water Resources Monitoring Strategy mapper</span> <span class="app-name-mobile">SSER mapper</span> 
         </div>
         <div id="mobile-main-menu">
             <span class="glyphicon glyphicon-menu-hamburger" ></span>
@@ -38,21 +39,18 @@
                                     </a>
                                 </h4>
                             </div>
-                            <div id="filtersPanel" class="panel-collapse collapse in">
-                                <div class="panel-body collapse in">     
+                            <div id="filtersPanel" class="panel-collapse collapse">
+                                <div class="panel-body">     
                                     <button type="button" class="btn btn-success btn-block" id="resetFilters" >Reset Filters</button>
 
                                     <h4 id="siteCount" class="text-right"></h4>
        
                                     <div id="geoFilterSelect" class="filterSelect">
                                         </br><label>Site / Location Filters</label>
-                                    </div>
-                                   
-									
+                                    </div>		
                                 </div>
                             </div>
                         </div>
-
 
                         <div class="panel panel-default sidebar-panel">
                             <div class="panel-heading">
@@ -67,13 +65,13 @@
                                     <div id="export" style="display:block;">
    
                                         <div class="form-group">
-                                            <button type="button" class="btn btn-success btn-block" id="exportGeoJSON" >Export GeoJSON&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
+                                            <button type="button" class="btn btn-success btn-block download-data" id="geoJSON" >Export GeoJSON&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
                                         </div>
                                        <div class="form-group">
-                                            <button type="button" class="btn btn-success btn-block" id="exportKML" >Export KML&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
+                                            <button type="button" class="btn btn-success btn-block download-data" id="KML" >Export KML&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
                                         </div>
                                         <div class="form-group">
-                                            <button type="button" class="btn btn-success btn-block" id="exportCSV" >Export CSV&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
+                                            <button type="button" class="btn btn-success btn-block download-data" id="CSV" >Export CSV&nbsp;&nbsp;<i class="glyphicon glyphicon-download-alt"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -88,8 +86,8 @@
                                     </a>
                                 </h4>
                             </div>
-                            <div id="mapLayersPanel" class="panel-collapse collapse">
-                                <div class="panel-body baseLayerPanel">
+                            <div id="mapLayersPanel" class="panel-collapse collapse in">
+                                <div class="panel-body baseLayerPanel collapse in">
                                     <div id="baseLayerToggles"></div>
                                 </div>
                             </div>
@@ -138,7 +136,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button class="close" type="button" data-dismiss="modal" aria-hidden="true" style="color:gray;">&times;</button>
-                    <h4 class="modal-title">NY WSC 305b Mapper</h4>
+                    <h4 class="modal-title">South Shore Estuary Reserve Coordinated Water Resources Monitoring Strategy mapper</h4>
                 </div>
                 <div id="aboutModalBody" class="modal-body">
                     <ul class="nav nav-tabs" id="aboutModalTabs">
@@ -147,12 +145,26 @@
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="aboutTabPane"></br>
-                            <p>Developed by Martyn Smith of the NY WSC.  Licensed under <a href="./license.txt" target="_blank">Apache 2.0</a></p>
-                            <p>Portions of this application were developed in conjuction with <a href="http://wim.usgs.gov" target="_blank">Web Informatics and Mapping (WiM)</a></p>
+
+                            <p>IPDS for SSER Report product: IP-082700: <a href="https://ipds.usgs.gov/WPP/Notes.aspx?IP=IP-082700">https://ipds.usgs.gov/WPP/Notes.aspx?IP=IP-082700</a></p>
+
+                            <p>IPDS for SSER Mapper Web Application: IP-092688: <a href="https://ipds.usgs.gov/WPP/Notes.aspx?IP=IP-092688">https://ipds.usgs.gov/WPP/Notes.aspx?IP=IP-092688</a></p>
+                            
+                            <p>Link to SSER Mapper Web Application: <a href="https://ny.water.usgs.gov/maps/sser/">https://ny.water.usgs.gov/maps/sser/</a></p>
+                            
+                            <p>Data in the SSER Mapper Web Application is served by Sciencebase: (NY SSER Project page*): <a href="https://www.sciencebase.gov/catalog/item/587fba36e4b085de6c11f3e8 ">https://www.sciencebase.gov/catalog/item/587fba36e4b085de6c11f3e8</a></p>
+                                                     
+                            <p>*A proposal was submitted to expand this Web App to other Long Island embayments. </p>
+
+                            <p>Developed by NY WSC.  Portions of this application were developed in conjuction with <a href="http://wim.usgs.gov" target="_blank">Web Informatics and Mapping (WiM)</a></p>
                             <span id="appVersion"></span>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="disclaimerTabPane"></br>
-                            <p>This mapping product is under development and should only be used in consultation with New York Water Science Center staff.</p>
+                            <h4>USGS Software User Rights Notice</h4>
+                            <p>Software and related material (data and (or) documentation), contained in or furnished in connection with a software distribution, are made available by the U.S. Geological Survey (USGS) to be used in the public interest and in the advancement of science, subject to the following restrictions and understandings.</p>
+                            <p>Because the software and related material are free and provided "as is," the authors, the USGS, and the United States Government have made no warranty, express or implied, as to accuracy or completeness and are not obligated to provide the user with any support, consulting, training or assistance of any kind with regard to the use, operation, and performance of this software nor to provide the user with any updates, revisions, new versions or "bug fixes".</p>          
+                            <p>The user assumes all risk for any damages whatsoever resulting from loss of use, data, or profits arising in connection with the access, use, quality, or performance of this software.</p>				
+                                
                         </div>
                     </div>
                 </div>

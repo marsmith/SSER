@@ -1,4 +1,4 @@
-# qw-mapper
+# SSER
 
 ####  Set up project
 run `npm install` to install dependencies

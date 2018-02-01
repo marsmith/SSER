@@ -10,26 +10,24 @@
 
 // updates:
 // 12.02.2016 mjs - Created
-// 05.08.2017 mjs - updated for sser
+// 05.08.2017 mjs - updatesfor sser
+// 12.06.2017 mjs - overhaul
 
 //config variables
 var MapX = '-73.15';
 var MapY = '40.7';
 var MapZoom = 10;
 var map;
-var masterGeoJSON,curGeoJSONlayer;
-var sitesLayer;  //leaflet feature group representing current filtered set of sites
 var layer, layerLabels;
-var identifiedFeature;
 var filterSelections = [];
-var queryString = {};
-var popupItems = ['Resp_Org','Project_Nm','Site_Name','Station_ID','Site_Type','Samp_Type','Parameter1','Parameter2','Study_Start_Date','Study_End_Date','Date_Category','DataPublic','Data_Link','RelatedPub','Contact','Latitude','Longitude','CoordDatum','Notes','MGMT_Topic','QAQC_Level','HUC12','Name'];
+var queryString = {'2':'1=1','3':'1=1','4':'1=1','5':'1=1'};
+var popupItems = ['Resp_Org','Project_Nm','Site_Name','Station_ID','Site_Type','Samp_Type','Parameter','Study_Start_Date','Study_End_Date','Date_Category','DataPublic','Data_Link','RelatedPub','Contact','Latitude','Longitude','CoordDatum','Notes','MGMT_Topic','QAQC_Level','HUC12','Name'];
 
 var geoFilterGroupList = [
 	{layerName: "Resp_Org", dropDownID: "RespOrg", label: "Responsible Organization"},
 	{layerName: "Site_Type", dropDownID: "SiteType", label: "Site Type"},
 	{layerName: "Samp_Type", dropDownID: "SampType", label: "Sample Type"},
-	{layerName: "Parameter2", dropDownID: "Parameter2", label: "Parameters"},
+	{layerName: "Parameter", dropDownID: "Parameter", label: "Constituents"},
 	{layerName: "Date_Category", dropDownID: "DateCategory", label: "Monitoring Status"},
 	{layerName: "DataPublic", dropDownID: "DataPublic", label: "Data Public"},
 	{layerName: "Name", dropDownID: "Name", label: "Waterbody"},
@@ -37,8 +35,8 @@ var geoFilterGroupList = [
 
 var mapServerDetails =  {
 	"url": "https://www.sciencebase.gov/arcgis/rest/services/Catalog/587fba36e4b085de6c11f3e8/MapServer",
-	"layers": [1,11,12,18,19], 
-	//"layers": [1], 
+	//initial view layers
+	"layers": [2,3,5,6,24], 
 	"visible": true, 
 	"opacity": 0.8,
 };
@@ -76,9 +74,6 @@ $( document ).ready(function() {
 
 	//set initial view
 	map.setView([MapY, MapX], MapZoom);
-		
-	//define layers
-	sitesLayer = L.featureGroup().addTo(map);
 
 	//add map layers
 	parseBaseLayers();
@@ -110,16 +105,8 @@ $( document ).ready(function() {
 		$('#aboutModal').modal('show');
 	});	
 
-	$('#exportGeoJSON').click(function() {
-		downloadGeoJSON();
-	});	
-
-	$('#exportKML').click(function() {
-		downloadKML();
-	});	
-
-	$('#exportCSV').click(function() {
-		downloadCSV();
+	$('.download-data').click(function() {
+		downloadData(this.id)
 	});	
 
 	$('#geoFilterSelect').on('changed.bs.select', function (event, clickedIndex, newValue, oldValue) {
@@ -167,6 +154,7 @@ function toggleBaseLayer(e, button) {
 		
 		//console.log('current visible layers: ', visibleLayers);	
 		$(button).removeClass('slick-btn-selection');
+		$(button).blur();
 	} 
 	
 	//case 2, add this layer to existing layers
@@ -181,14 +169,14 @@ function toggleBaseLayer(e, button) {
 }
 
 function mapClickQuery(e) {
-	var visibleLayers = mapServer.getLayers();
-	if (visibleLayers.length > 0) {
-		mapServer.identify().on(map).at(e.latlng).layers("visible:" + visibleLayers[0]).run(function(error, featureCollection){
-			if (featureCollection.features.length > 0) {
-			$.each(featureCollection.features, function (index,value) {
 
-				if (map.hasLayer(identifiedFeature)) map.removeLayer(identifiedFeature);
-				identifiedFeature = L.geoJson(value).addTo(map);
+	toastr.info('Querying clicked point...', {timeOut: 0, extendedTimeOut: 0});
+	mapServer.identify().on(map).at(e.latlng).layers("visible:all").run(function(error, featureCollection){
+		if (featureCollection.features.length > 0) {
+			console.log(featureCollection)
+
+			toastr.clear();
+			$.each(featureCollection.features, function (index,value) {
 
 				$.each(mapServerLegend.layers, function (index, layer) {
 					if (layer.layerId === value.layerId) {
@@ -198,20 +186,18 @@ function mapClickQuery(e) {
 							popupContent += '<strong>' + key + ': </strong>' + field + '</br>';
 						});
 						
-						popup = L.popup()
+						popup = L.popup({maxHeight: 200})
 						.setLatLng(e.latlng)
 						.setContent(popupContent)
 						.openOn(map);
 					}
-				});
-				
+				});		
 			});
-			}
-			else {
-			//pane.innerHTML = 'No features identified.';
-			}
-		});
-	}
+		}
+		else {
+		//pane.innerHTML = 'No features identified.';
+		}
+	});
 }
 
 function geoFilterSelect(event, clickedIndex, newValue, oldValue) {
@@ -272,13 +258,11 @@ function geoFilterSelect(event, clickedIndex, newValue, oldValue) {
 
 		//if multiple parent dropdowns in use, assume conditional 'AND' (remove sites from subset)
 		if (parentArray.length > 1) {
-			//loadSites(curGeoJSONlayer.toGeoJSON(),[filterSelect]);
 			siteQuery(filterSelections,'AND');
 		}
 
 		//otherwise add sites from master, simulating conditional 'OR'
 		else {
-			//loadSites(masterGeoJSON,filterSelections);
 			siteQuery(filterSelections, 'OR');
 		}			
 	}
@@ -294,8 +278,8 @@ function siteQuery(selections, method) {
 
 		//console.log(selections,index,selection);
 
-		//use special 'like' query if parameter2
-		if (selection.selectName === 'Parameter2') {
+		//use special 'like' query if parameter
+		if (selection.selectName === 'Parameter') {
 			queryList.push(selections[index].selectName + ' LIKE ' + "'%" + selections[index].optionValue + "%'");
 		}
 		else {
@@ -304,8 +288,10 @@ function siteQuery(selections, method) {
 		
 	});
 
-	queryString['1'] = queryList.join(' ' + method + ' ');
-	console.log('complete queryString:',queryString);
+	var query = queryList.join(' ' + method + ' ');
+	//query needs to represent layers to be queried
+	queryString = {'2':query,'3':query,'5':query,'6':query}
+	//console.log('Starting site query:',queryString);
 	mapServer.setLayerDefs(queryString);
 	toastr.clear();
 	toastr.info('Site query completed', {timeOut: 5000});
@@ -385,51 +371,77 @@ function populateGeoFilters() {
 		$("#geoFilterSelect").append("<select id='" + item.layerName + "' class='selectpicker geoFilterSelect' multiple data-selected-text-format='count' data-header='" + item.label + "'title='" + item.label + "'></select>");
 	});
 
-	//populate dropdowns
-	mapServer.query().layer('2').where('1=1').ids(function(error, ids){
+	//master loop over each layer in query string
+	$.each(queryString, function (key,value) {
 
-		var iterations = Math.ceil(ids.length/1000)
+		//initial ID query to get counts (extra step because over 1000 features)
+		mapServer.query().layer(key).where(value).ids(function(error, ids){
 
-		for(var i=0; i<iterations;i++){
-			
-			var index = i*1000;
-			//console.log('iteration',i, index,index+1000,'OBJECTID>= ' + index + ' and OBJECTID< ' + (index+1000));
-			mapServer.query().layer('2').where('OBJECTID>= ' + index + ' and OBJECTID< ' + index+1000).run(function(error, featureCollection){
+			//console.log('IDs found for layer',key, 'where query:',value,':', ids.length)
 
-				if (featureCollection && featureCollection.features.length > 0) {
+			if (!error) {
+				
+				var iterations = Math.ceil(ids.length/1000)
 
-					//console.log('response', featureCollection);
-					$.each(featureCollection.features, function(index, feature) {
-						//console.log('feature',feature)
-						$.each(feature.properties, function(key, value) {
+				for(var i=0; i<iterations;i++){
+					
+					var index = i*1000;
 
-							//loop over filiter list
-							$.each(geoFilterGroupList, function(index, filter) {
-								if (filter.layerName === key) {
+					//actual map server query for features
+					mapServer.query().layer(key).where('OBJECTID>= ' + index + ' and OBJECTID< ' + index+1000).run(function(error, featureCollection){
+				
+						//console.log('Features found for layer',key, 'where query:',value,':', featureCollection.features.length)
 
-									//special method for parameter2
-									if (filter.layerName === 'Parameter2') {
-										
-										var values = value.split(',');
-										$.each(values, function(index, splitVal) {
-											//console.log('here2',splitVal);
-											var newVal = splitVal.trim();
-											addFilterOption(newVal, newVal, '#' + filter.layerName);
+						if (!error) {
+							if (featureCollection && featureCollection.features.length > 0) {
+								
+								//console.log('response', featureCollection);
+								$.each(featureCollection.features, function(index, feature) {
+									//console.log('feature',feature)
+									$.each(feature.properties, function(key, value) {
+					
+										//loop over filiter list
+										$.each(geoFilterGroupList, function(index, filter) {
+											if (filter.layerName === key) {
+					
+												//special method for parameter
+												if (filter.layerName === 'Parameter') {
+													
+													var values = value.split(',');
+													$.each(values, function(index, splitVal) {
+														//console.log('here2',splitVal);
+														var newVal = splitVal.trim();
+														addFilterOption(newVal, newVal, '#' + filter.layerName);
+													});
+												}
+												//otherwise parse as normal
+												else {
+													addFilterOption(value, value, '#' + filter.layerName);
+												}
+											}
 										});
-									}
-									//otherwise parse as normal
-									else {
-										addFilterOption(value, value, '#' + filter.layerName);
-									}
-								}
-							});
-						});
+									});
+								});
+
+								//need to do refresh for filters to show up
+								refreshAndSortFilters();
+							}
+
+							else {
+								console.log('No features were returned');
+							}
+						}
+						else {
+							console.log('There was an error populating filters:',error);
+						}
 					});
 				}
-				//need to do refresh for filters to show up
-				refreshAndSortFilters();
-			});
-		}
+			}
+			else {
+				console.log('There was an error populating filters:',error);
+			}
+		});
+
 	});
 }
 
@@ -442,132 +454,142 @@ function addFilterOption(code, text, elementName) {
 	}
 }
 
-function createGeoFilterGroups(list) {
-	$.each(list, function(index, filter) {
-
-		//create dropdown menus
-		$("#geoFilterSelect").append("<select id='" + filter.dropDownID + "-select' class='selectpicker geoFilterSelect' multiple data-selected-text-format='count' data-header='" + filter.layerName + "' title='" + filter.layerName + "'></select>");
-	});
-
-	loadCSV(CSVurl);
-}
-
 function downloadSites(_callback) {
 
-	//check if we have a query if not make sure we query all
-	if ($.isEmptyObject(queryString)) {
-		queryString = {1:"1=1"}
-	}
+	//console.log('query',queryString)
 
 	$.each(queryString, function (key,value) {
 		
 		//have to do double loop to get geometries because possibility of >1000 features
 		mapServer.query().layer(key).where(value).ids(function(error, ids){
-			
-			console.log('total sites:',ids.length)
-			
-			//check if more than 1000 sites
-			if (ids.length < 1000) {
-				mapServer.query().layer(key).where(value).run(function(error, featureCollection){
-					//console.log(featureCollection);
-					//return featureCollection;
-					_callback(featureCollection);
-				});
+
+			if (!error) {
+				if (ids) {
+					//console.log('Total sites in layer ' + key + ' with the query "' + value + '":',ids.length)
+
+					//check if more than 1000 sites
+					if (ids.length < 1000) {
+						mapServer.query().layer(key).where(value).run(function(error, featureCollection){
+							//console.log(featureCollection);
+							//return featureCollection;
+							_callback(featureCollection);
+						});
+					}
+
+					else {
+						var iterations = Math.ceil(ids.length/1000)
+						var features = [];
+						for(var i=0; i<iterations;i++){
+							
+							var index = i*1000;
+							//console.log(value + ' and OBJECTID>= ' + index + ' and OBJECTID< ' + (index+1000).toString());
+							mapServer.query().layer(key).where(value + ' and OBJECTID>= ' + index + ' and OBJECTID< ' + index+1000).run(function(error, featureCollection){
+
+								//loop over individual features
+								featureCollection.features.forEach(function(feature) {
+									features.push(feature);
+								});
+
+								//each loop check if were done
+								if (features.length === ids.length) {
+									_callback({type:'FeatureCollection',features:features})
+								}
+							});
+						}
+					}
+				}
+				else {
+					console.log('No sites returned for layer',key,'with query',value)
+					_callback({type:'FeatureCollection',features:[]})
+				}
 			}
 
 			else {
-				var iterations = Math.ceil(ids.length/1000)
-				var features = [];
-				for(var i=0; i<iterations;i++){
-					
-					var index = i*1000;
-					//console.log(value + ' and OBJECTID>= ' + index + ' and OBJECTID< ' + (index+1000).toString());
-					mapServer.query().layer(key).where(value + ' and OBJECTID>= ' + index + ' and OBJECTID< ' + index+1000).run(function(error, featureCollection){
-
-						//loop over individual features
-						featureCollection.features.forEach(function(feature) {
-							features.push(feature);
-						});
-
-						//each loop check if were done
-						if (features.length === ids.length) {
-							_callback({type:'FeatureCollection',features:features})
-						}
-
-					});
-
-				}
+				console.log('There was an error with the export:', error);
+				toastr.error('Error', 'Problem with export, maybe no sites', {timeOut: 0});
 			}
 		});
 	});
 }
 
-function downloadGeoJSON() {
+function downloadData(type) {
+
+	var queryCount = Object.keys(queryString).length;
+	var callBackCount = 0;
+
+	var features = [];
 
 	downloadSites(function(featureCollection) {
 
-		//for some reason the leaflet toGeoJSON wraps the geojson in a second feature collection
-		if (featureCollection.features[0]) {
-			var GeoJSON = JSON.stringify(featureCollection);
-			var filename = 'data.geojson';
-			downloadFile(GeoJSON,filename)
+		callBackCount += 1;
+		//console.log('In callback',callBackCount, 'of', queryCount, type)
+
+		//loop over individual features
+		featureCollection.features.forEach(function(feature) {
+			features.push(feature);
+		});
+
+		if (callBackCount === queryCount) {
+
+			//console.log('we are done', features);
+
+			//for some reason the leaflet toGeoJSON wraps the geojson in a second feature collection
+			if (features.length == 0) {
+				toastr.error('Error', 'No sites to export', {timeOut: 0});
+				//bail
+				return;
+			}
+
+			var GeoJSON = {type:'FeatureCollection',features:features};
+
+			if (type === 'geoJSON') {
+				var filename = 'data.geojson';
+				downloadFile(JSON.stringify(GeoJSON),filename)
+			}
+			if (type === 'KML') {
+				var kml = tokml(GeoJSON);
+				var filename = 'data.kml';
+				downloadFile(kml,filename);
+			}
+
+			if (type === 'CSV') {
+
+				//console.log('in CSV export', GeoJSON)
+				//get headers
+				var attributeNames = Object.keys(GeoJSON.features[0].properties);
+		
+				// write csv file
+				var csvData = [];
+				csvData.push(attributeNames.join(','));
+		
+				GeoJSON.features.forEach(function(feature) {
+
+					var attributes = [];
+					attributeNames.forEach(function(name) {
+						var text = '';
+						if (feature.properties[name]) {
+							var csvRow = feature.properties[name];
+							csvRow = csvRow.toString();
+							//do string trim
+							csvRow = csvRow.replace(/^\s+|\s+$/g, '');
+							//replace any commas that would break CSV export
+							text = csvRow.replace(',',';');
+						}
+						attributes.push(text);
+					});
+					csvData.push(attributes);
+				});
+		
+				csvData = csvData.join('\n');
+		
+				var filename = 'data.csv';
+				downloadFile(csvData,filename);
+			}
 		}
 		else {
-			toastr.error('Error', 'No sites to export', {timeOut: 0})
+			//console.log('not done yet')
 		}
     });
-}
-
-function downloadKML() {
-	//https://github.com/mapbox/tokml
-	//https://gis.stackexchange.com/questions/159344/export-to-kml-option-using-leaflet
-
-	downloadSites(function(featureCollection) {
-		if (featureCollection.features[0]) {
-			var GeoJSON = featureCollection.features[0];
-			var kml = tokml(GeoJSON);
-			var filename = 'data.kml';
-			downloadFile(kml,filename);
-		}
-		else {
-			toastr.error('Error', 'No sites to export', {timeOut: 0})
-		}
-	});
-
-}
-
-function downloadCSV() {
-
-	downloadSites(function(featureCollection) {
-		if (featureCollection.features[0]) {
-			//get headers
-			var attributeNames = Object.keys(featureCollection.features[0].properties);
-	
-			// write csv file
-			var csvData = [];
-			csvData.push(attributeNames.join(','));
-	
-			featureCollection.features.forEach(function(feature) {
-				var attributes = [];
-				attributeNames.forEach(function(name) {
-					var text = '';
-					if (feature.properties[name]) text = feature.properties[name].toString();
-					console.log('here',name,text)
-					attributes.push(text);
-				});
-				csvData.push(attributes);
-			});
-	
-			csvData = csvData.join('\n');
-	
-			var filename = 'data.csv';
-			downloadFile(csvData,filename);
-		}
-	
-		else {
-			toastr.error('Error', 'No sites to export', {timeOut: 0})
-		}
-	});
 }
 
 function downloadFile(data,filename) {
