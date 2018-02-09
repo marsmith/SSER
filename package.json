@@ -1,6 +1,6 @@
 {
   "name": "SSER-mapper",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Mapping Interface for SSER",
   "main": "webpack.config.js",
   "scripts": {

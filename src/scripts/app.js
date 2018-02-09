@@ -40,6 +40,7 @@ var mapServerDetails =  {
 	"visible": true, 
 	"opacity": 0.8,
 };
+var mapServer;
 var mapServerLegend;
 var geoFilterFlag;
 var parentArray = [];
@@ -143,7 +144,7 @@ function toggleBaseLayer(e, button) {
 		visibleLayers.splice(index, 1);
 
 		//if there is nothing in visibleLayers, have to remove the map layer to clear
-		if (visibleLayers.length === 0) {
+		if (visibleLayers.length === 0 && map.hasLayer(mapServer)) {
 			map.removeLayer(mapServer);
 		}
 
@@ -158,13 +159,15 @@ function toggleBaseLayer(e, button) {
 	} 
 	
 	//case 2, add this layer to existing layers
-	else {
-		//console.log('map DOES NOT have this layer: ', layerID);
+	else  {
 		$(button).addClass('slick-btn-selection');
 		visibleLayers.push(layerID);
 		mapServer.setLayers(visibleLayers);
-		//map.addLayer(mapServer);
-		//console.log('current visible layers: ', visibleLayers);
+
+		//need to re-add mapserver if we have no layers
+		if (index == -1 && !map.hasLayer(mapServer)) {
+			map.addLayer(mapServer);
+		}
 	}
 }
 
@@ -314,7 +317,8 @@ function createLegend(mapServer, mapServerDetails) {
 
 			//console.log('here',index,legendValue, legendValue.layerId)
 			var layerLabel = unCamelize(legendValue.layerName);
-			
+			var layerName = camelize(legendValue.layerName.replace(/[{()}]/g, ''));
+
 			//if this layer doesn't have multiple symobologies this is easy
 			if (legendValue.legend.length === 1) {
 				$('#baseLayerToggles').append('<button id="' + camelize(legendValue.layerName) + '" class="btn btn-default slick-btn layerToggle" value="' + legendValue.layerId + '"><img alt="Legend Swatch" src="data:image/png;base64,' + legendValue.legend[0].imageData + '" />' + layerLabel + '</button>');
@@ -323,7 +327,6 @@ function createLegend(mapServer, mapServerDetails) {
 
 			//otherwise need to loop over all the image swatches and labels
 			else {	
-				var layerName = camelize(legendValue.layerName.replace(/[{()}]/g, ''));
 				$('#baseLayerToggles').append('<div id="' + layerName + '_group"></div>');
 
 				$('#' + layerName + '_group').append('<button id="' + layerName + '" class="btn btn-default slick-btn layerToggle" value="' + legendValue.layerId + '">' + layerLabel + '</button>');
@@ -334,6 +337,7 @@ function createLegend(mapServer, mapServerDetails) {
 			}
 
 			//select legend items from initial visibility array and auto-select them
+			//console.log('checking:',index,legendValue,mapServerDetails.layers.indexOf(legendValue.layerId))
 			if (mapServerDetails.layers.indexOf(legendValue.layerId) != -1) $('#' + layerName).addClass('slick-btn-selection');
 		});
 	});
